@@ -24,30 +24,30 @@ SEARCH_STEP_SIZE = 5
 SEARCH_Y_SIZE = 5
 
 
-class PhlebotStateMachine(StateMachine):
-    booting = State(initial=True)
-    home = State()
-    arm_open = State()
-    arm_clamped = State()
-    searching = State()
-    search_failed = State()
-    large_retarget_st = State()
-    small_retarget_st = State()
-    injecting = State()
-    retracting = State()
+# class PhlebotStateMachine(StateMachine):
+#     booting = State(initial=True)
+#     home = State()
+#     arm_open = State()
+#     arm_clamped = State()
+#     searching = State()
+#     search_failed = State()
+#     large_retarget_st = State()
+#     small_retarget_st = State()
+#     injecting = State()
+#     retracting = State()
 
-    post_complete = booting.to(home)
-    opening_arm = home.to(arm_open)
-    clamping = arm_open.to(arm_clamped)
-    searching_loop = searching.to(large_retarget_st, cond="injection_site_found") | \
-        searching.to(search_failed, cond="fully_searched")
-    retargetting = large_retarget_st.to(small_retarget_st)
-    positioning = small_retarget_st.to(injecting)
-    injection_completed = injecting.to(retracting)
+#     post_complete = booting.to(home)
+#     opening_arm = home.to(arm_open)
+#     clamping = arm_open.to(arm_clamped)
+#     searching_loop = searching.to(large_retarget_st, cond="injection_site_found") | \
+#         searching.to(search_failed, cond="fully_searched") |
+#     retargetting = large_retarget_st.to(small_retarget_st)
+#     positioning = small_retarget_st.to(injecting)
+#     injection_completed = injecting.to(retracting)
 
-    def __init__(self):
-        self.injection_site_found = False
-        self.fully_searched = False
+#     def __init__(self):
+#         self.injection_site_found = False
+#         self.fully_searched = False
 
 
 class PhlebotState:
@@ -64,31 +64,46 @@ def POST():
     Verifies functionality of various actuators
     """
     # Set current position as home
+    commands.connect()
+    # input()
     commands.home_stepper()
+    print("Homing steppers")
     # Test camera toolhead stepper
-    commands.increment_toolhead(5)
-    commands.increment_toolhead(-5)
-    time.sleep(TEST_DELAY)
+    commands.increment_toolhead(10)
+    print("Moving toolhead forward")
+    input()
+    commands.increment_toolhead(-10)
+    print("Moving toolhead back")
+    input()
     # Test carriage stepper
-    commands.increment_carraige(5)
-    commands.increment_carraige(-5)
-    time.sleep(TEST_DELAY)
+    print("Moving carriage forward")
+    commands.increment_carraige(10)
+    input()
+    print("Moving carriage back")
+    commands.increment_carraige(-10)
+    input()
     # Test injection toolhead stepper
 
     # Testing arm solenoid
-    commands.clampArm()
+    commands.clamp_arm()
+    print("Clamping")
     time.sleep(TEST_DELAY)
-    commands.raiseClampingArm()
+    print("Releasing")
+    commands.raise_clamping_arm()
     time.sleep(TEST_DELAY)
 
     # Test injection solenoid
+    print("Injecting")
     commands.send_gcode(commands.INJECT)
     time.sleep(TEST_DELAY)
+    print("Retracting")
     commands.send_gcode(commands.RETRACT)
     time.sleep(TEST_DELAY)
     # Test drop solenoid
+    print("Stage Down")
     commands.send_gcode(commands.STAGE_ONE_DOWN)
     time.sleep(TEST_DELAY)
+    print("Stage Up")
     commands.send_gcode(commands.STAGE_ONE_UP)
     time.sleep(TEST_DELAY)
 
@@ -160,4 +175,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    POST()

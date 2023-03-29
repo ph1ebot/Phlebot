@@ -11,7 +11,7 @@ STAGE_ONE_UP = "SET_FAN_SPEED FAN=fan2 SPEED=0"
 INJECT = "M106 S125"
 RETRACT = "M106 S0"
 
-SPEED_GCODE_Y = " F6000"
+SPEED_GCODE_Y = " F200"
 
 GET_POS = "M114"
 HOME = "G28"
@@ -26,27 +26,40 @@ TRAVEL_TIME = 3
 DEPLOY_TIME = 0.5
 
 
+API_KEY = "CF0BF4529D63426B892A227F1F1F2936"
+
 def move_carriage(position):
-    return "G0 Y" + str(position) + SPEED_GCODE_Y
+    return "G0 Y " + str(position) + SPEED_GCODE_Y
 
 
 def move_toolhead(position):
-    return "G0 Y" + str(position) + SPEED_GCODE_Y
+    return "G0 Z " + str(position) + SPEED_GCODE_Y
 
 
 def send_gcode(cmd):
     """
     Send G-CODE command to controller using OctoPrint API
     """
-    url = 'localhost:5000/api/printer/command'
-    myobj = {'commandsomekey': cmd}
+    url = 'http://127.0.0.1:5000/api/printer/command'
+    myobj = {'command': cmd, 'passive':'true' }
+    header = {"content-type" : "application/json", "X-Api-Key":API_KEY}
 
-    x = requests.post(url, json=myobj)
+    x = requests.post(url, headers=header, json=myobj)
+    print(x.content)
     return x
 
 
 def get_position():
     return send_gcode(GET_POS).json
+
+def connect():
+    url = 'http://127.0.0.1:5000/api/login'
+    myobj = {'passive':'true' }
+    header = {"content-type" : "application/json", "X-Api-Key":API_KEY}
+
+    x = requests.post(url, headers=header, json=myobj)
+    print(x.content)
+    return x
 
 
 def home_stepper():
@@ -55,13 +68,13 @@ def home_stepper():
 
 def increment_toolhead(distance):
     send_gcode(INCREMENT_MODE)
-    move_toolhead(distance)
+    send_gcode(move_toolhead(distance))
     send_gcode(ABSOLUTE_MODE)
 
 
 def increment_carraige(distance):
     send_gcode(INCREMENT_MODE)
-    move_carriage(distance)
+    send_gcode(move_carriage(distance))
     send_gcode(ABSOLUTE_MODE)
 
 
@@ -75,7 +88,7 @@ def home():
     # Return injection toolhead to home
 
 
-def raiseClampingArm():
+def raise_clamping_arm():
     """
     Actuate solenoid to raise the clamping arm
     """
