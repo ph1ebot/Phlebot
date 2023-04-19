@@ -1,0 +1,5 @@
+Symlinking /usr/workdir/Phlebot/catkin_ws/devel/lib/libimage_geometry.so
+Symlinking /usr/workdir/Phlebot/catkin_ws/devel/lib/python3/dist-packages/image_geometry/__init__.py
+Symlinking /usr/workdir/Phlebot/catkin_ws/devel/lib/pkgconfig/image_geometry.pc
+Symlinking /usr/workdir/Phlebot/catkin_ws/devel/share/image_geometry/cmake/image_geometryConfig-version.cmake
+Symlinking /usr/workdir/Phlebot/catkin_ws/devel/share/image_geometry/cmake/image_geometryConfig.cmake
