@@ -1,5 +1,5 @@
-[submodule "catkin_ws/src/vision_opencv"]
-	path = catkin_ws/src/vision_opencv
+[submodule "robot/src/vision_opencv"]
+	path = robot/src/vision_opencv
 	url = https://github.com/ros-perception/vision_opencv.git
 [submodule "camera/jetcam"]
 	path = camera/jetcam
