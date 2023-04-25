@@ -1,0 +1,8 @@
+FROM dtam_ml_rosmel:latest
+
+# Install Jetcam
+COPY camera/jetcam /usr/jetcam
+RUN cd /usr/jetcam && \
+	python3 setup.py install
+RUN pip3 install traitlets scikit-build
+
