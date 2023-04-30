@@ -26,7 +26,7 @@ TRAVEL_TIME = 3
 DEPLOY_TIME = 0.5
 
 
-API_KEY = "CF0BF4529D63426B892A227F1F1F2936"
+API_KEY = "35F3C285627E450D8DD7A34F0EC91399"#"CF0BF4529D63426B892A227F1F1F2936"
 
 def move_carriage(position):
     return "G0 Y " + str(position) + SPEED_GCODE_Y
@@ -48,6 +48,17 @@ def send_gcode(cmd):
     print(x.content)
     return x
 
+'''
+Untested - Turns out sending commands with the right API key will automatically log you in for that command.
+'''
+def connect_to_printer():
+    url = 'http://127.0.0.1:5000/api/connection'
+    myobj = {'command': "connect", 'port':"/dev/ttyACM0", 'baudrate': "115200", 'passive':'true' }
+    header = {"content-type" : "application/json", "X-Api-Key":API_KEY}
+
+    x = requests.post(url, headers=header, json=myobj)
+    print(x.content)
+    return x
 
 def get_position():
     return send_gcode(GET_POS).json

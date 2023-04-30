@@ -35,27 +35,28 @@ def cam():
             CORRECTION = 1.5
             norm = np.mean(avg_mask, axis=2, keepdims = True)
 
-        img = image_data / avg_mask * norm / CORRECTION
-        max_intensity = np.amax(img)
-        if max_intensity > 255:
-            print(f"Image {image_count} slammed against color rail: {max_intensity}")
-            img = img * 255 / max_intensity
+            img = image_data / avg_mask * norm / CORRECTION
+            max_intensity = np.amax(img)
+            if max_intensity > 255:
+                print(f"Image {image_count} slammed against color rail: {max_intensity}")
+                img = img * 255 / max_intensity
         
-        img = img.astype('uint8')
+            img = img.astype('uint8')
 
-        # undistort
-        dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
-        # crop the image
-        x, y, w, h = roi
-        dst = dst[y:y+h, x:x+w]
-        image_data = np.pad(dst, ((0,1), (0,1), (0,0)))
+            # undistort
+            dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+            # crop the image
+            x, y, w, h = roi
+            dst = dst[y:y+h, x:x+w]
+            image_data = np.pad(dst, ((0,1), (0,1), (0,0)))
 
-        # Convert to img msg
-        new_image = bridge.cv2_to_imgmsg(image_data, encoding="passthrough")
+            # Convert to img msg
+            new_image = bridge.cv2_to_imgmsg(image_data, encoding="passthrough")
                 
-        rospy.loginfo(f"Image {image_count}")
-        pub.publish(new_image)
-        rate.sleep()
+            rospy.loginfo(f"Image {image_count}")
+            image_count += 1
+            pub.publish(new_image)
+            rate.sleep()
 
 if __name__ == '__main__':
         try:

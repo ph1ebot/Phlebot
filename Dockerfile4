@@ -1,4 +1,4 @@
-FROM dtam_ml_rosmel:latest
+FROM dtam_ml_ros:latest
 
 # Install Jetcam
 COPY camera/jetcam /usr/jetcam

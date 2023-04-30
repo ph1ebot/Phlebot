@@ -4,3 +4,6 @@
 [submodule "camera/jetcam"]
 	path = camera/jetcam
 	url = https://github.com/NVIDIA-AI-IOT/jetcam.git
+[submodule "dtam/OpenDTAM-3.1"]
+	path = dtam/OpenDTAM-3.1
+	url = https://github.com/liukeskywalker98/OpenDTAM-3.1.git

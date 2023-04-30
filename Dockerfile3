@@ -2,6 +2,6 @@ FROM dtam_ml_ros_cam:latest
 
 RUN apt update && apt install -y --no-install-recommends \
 	python3.7-dev
-RUN rm /usr/bin/python3 && \
-	ln -s /usr/bin/python3.7 /usr/bin/python3
+#RUN rm /usr/bin/python3 && \
+#	ln -s /usr/bin/python3.7 /usr/bin/python3
 
