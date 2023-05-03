@@ -49,7 +49,6 @@ def cam():
             x, y, w, h = roi
             dst = dst[y:y+h, x:x+w]
             image_data = np.pad(dst, ((0,1), (0,1), (0,0)))
-
             # Convert to img msg
             new_image = bridge.cv2_to_imgmsg(image_data, encoding="passthrough")
                 

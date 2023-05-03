@@ -9,7 +9,7 @@ class ConvNextDownBlock(torch.nn.Module):
     def __init__(self, chan_ct, expansion = 4, stride = 1):
         super().__init__()
         self.block = torch.nn.Sequential(
-            torch.nn.Conv2d(in_channels = chan_ct // stride, out_channels = chan_ct, kernel_size = 7, stride = stride, groups = chan_ct // stride, padding = 3, bias = True),
+            torch.nn.Conv2d(in_channels = chan_ct // stride, out_channels = chan_ct, kernel_size = 5, stride = stride, groups = chan_ct // stride, padding = 2, bias = True),
             torch.nn.BatchNorm2d(chan_ct),
             torch.nn.Conv2d(in_channels = chan_ct, out_channels = chan_ct * expansion, kernel_size = 1, bias = True),
             torch.nn.GELU(),
@@ -29,7 +29,7 @@ class ConvNextUpBlock(torch.nn.Module):
     def __init__(self, chan_ct, expansion = 4, stride = 1):
         super().__init__()
         self.block = torch.nn.Sequential(
-            torch.nn.Conv2d(in_channels = chan_ct * stride, out_channels = chan_ct, kernel_size = 7, stride = 1, groups = chan_ct, padding = 3, bias = True),
+            torch.nn.Conv2d(in_channels = chan_ct * stride, out_channels = chan_ct, kernel_size = 5, stride = 1, groups = chan_ct, padding = 2, bias = True),
             torch.nn.BatchNorm2d(chan_ct),
             torch.nn.Conv2d(in_channels = chan_ct, out_channels = chan_ct * expansion, kernel_size = 1, bias = True),
             torch.nn.GELU(),
