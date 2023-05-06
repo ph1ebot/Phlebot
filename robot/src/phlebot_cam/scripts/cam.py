@@ -12,7 +12,7 @@ libgcc_s = ctypes.CDLL('libgcc_s.so.1') # this line is to avert a runtime error 
 def cam():
         pub = rospy.Publisher('image_data', Image, queue_size = 1)
         rospy.init_node('cam', anonymous=True)
-        rate = rospy.Rate(1)
+        rate = rospy.Rate(140)
 
         # init jetcam
         camera = CSICamera(width = 640, height = 480, capture_width = 640, capture_height = 480, capture_fps = 1)
@@ -29,37 +29,45 @@ def cam():
         avg_mask = cv2.imread('correction_mask.jpg')
 
         image_count = 0
+
+        # We need to divide the image rate, mem ops can't keep up
+        image_divider = 10
         while not rospy.is_shutdown():
-            image_data = np.copy(camera.read())
-            # Preprocess
-            CORRECTION = 1.5
-            norm = np.mean(avg_mask, axis=2, keepdims = True)
+            raw_image = camera.read()
+            # we read to clear the hardware buffer, but subsample image rate
+            if not image_count % image_divider:
+                image_data = np.copy(raw_image)
+                # Preprocess
+                CORRECTION = 1.5
+                norm = np.mean(avg_mask, axis=2, keepdims = True)
 
-            img = image_data / avg_mask * norm / CORRECTION
-            max_intensity = np.amax(img)
-            if max_intensity > 255:
-                print(f"Image {image_count} slammed against color rail: {max_intensity}")
-                img = img * 255 / max_intensity
+                img = image_data / avg_mask * norm / CORRECTION
+                max_intensity = np.amax(img)
+                if max_intensity > 255:
+                    print(f"Image {image_count} slammed against color rail: {max_intensity}")
+                    img = img * 255 / max_intensity
         
-            img = img.astype('uint8')
+                img = img.astype('uint8')
 
-            # undistort
-            dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
-            # crop the image
-            x, y, w, h = roi
-            dst = dst[y:y+h, x:x+w]
-            image_data = np.pad(dst, ((0,1), (0,1), (0,0)))
-            # Convert to img msg
-            new_image = bridge.cv2_to_imgmsg(image_data, encoding="passthrough")
+                # undistort
+                dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+                # crop the image
+                x, y, w, h = roi
+                dst = dst[y:y+h, x:x+w]
+                image_data = np.pad(dst, ((0,1), (0,1), (0,0)))
+                # Convert to img msg
+
+                cv2.imwrite("pre-image.jpg", image_data)
+                new_image = bridge.cv2_to_imgmsg(image_data, encoding="passthrough")
+                pub.publish(new_image)
                 
             rospy.loginfo(f"Image {image_count}")
             image_count += 1
-            pub.publish(new_image)
             rate.sleep()
 
 if __name__ == '__main__':
         try:
             cam()
         except rospy.ROSInterruptException:
-            print("wtf")
+            rospy.loginfo("phlebot_cam interrupted! Exiting...")
             pass

@@ -16,10 +16,11 @@ class RobotState():
         self.stage1 = False # 0 for up, 1 for down
         self.needle = False # 0 for retracted, 1 for injected
 
-CLAMP_PERIOD = 10
-CARRIAGE_PERIOD = 0.4
-TOOLHEAD_PERIOD = 0.4
-STAGE1_PERIOD = 5
+CLAMP_PERIOD = 3.4
+CARRIAGE_PERIOD = 0.2
+TOOLHEAD_PERIOD = 0.2
+STAGE1_PERIOD = 2
+NEEDLE_PERIOD = 0.5
 
 def sendCommand(command):
     # decompose into component commands
@@ -41,8 +42,8 @@ def sendCommand(command):
     if carriage_command != robot.carriage_position:
         if not robot.clamped: # not carriage movement during clamping
             rospy.loginfo("Sending carraige")
-            move_carriage(carriage_command)
-            delta = abs(carriage_command -  robot.carriage_positions)
+            send_gcode(move_carriage(carriage_command))
+            delta = abs(carriage_command -  robot.carriage_position)
             rospy.sleep(CARRIAGE_PERIOD * delta)
             robot.carriage_position = carriage_command
         else:
@@ -53,7 +54,9 @@ def sendCommand(command):
     if toolhead_command != robot.toolhead_position:
         rospy.loginfo("Sending toolhead")
         delta = abs(toolhead_command - robot.toolhead_position)
-        move_toolhead(toolhead_command)
+        rospy.loginfo(f"delta: {delta}")
+        send_gcode(move_toolhead(toolhead_command))
+        rospy.loginfo("Moved toolhead")
         robot.toolhead_position = toolhead_command
         rospy.sleep(TOOLHEAD_PERIOD * delta)
 
@@ -98,24 +101,44 @@ def exercise():
     send_gcode(STAGE_ONE_UP)
     send_gcode(OPEN_CLAMP)
     
-    CARRIAGE_TEST_DIST = 20
-    TOOLHEAD_TEST_DIST = 10
-    
+    CARRIAGE_TEST_DIST = -30
+    TOOLHEAD_TEST_DIST = 40
+
     rospy.loginfo("Trying carriage")
     send_gcode(move_carriage(CARRIAGE_TEST_DIST))
     rospy.sleep(CARRIAGE_TEST_DIST * CARRIAGE_PERIOD)
-    
+   
+    rospy.loginfo("Trying clamp")
+    send_gcode(CLAMP_ARM)
+    rospy.sleep(CLAMP_PERIOD)
+
     rospy.loginfo("Trying toolhead")
     send_gcode(move_toolhead(TOOLHEAD_TEST_DIST))
     rospy.sleep(TOOLHEAD_TEST_DIST * TOOLHEAD_PERIOD)
     
-    rospy.loginfo("Returning carriage")
-    send_gcode(move_carriage(0))
-    rospy.sleep(CARRIAGE_TEST_DIST * CARRIAGE_PERIOD)
+    rospy.loginfo("Trying injection")
+    send_gcode(STAGE_ONE_DOWN)
+    rospy.sleep(STAGE1_PERIOD)
+
+    send_gcode(INJECT)
+    rospy.sleep(STAGE1_PERIOD)
+    send_gcode(RETRACT)
+    rospy.sleep(STAGE1_PERIOD)
+    
+    send_gcode(STAGE_ONE_UP)
+    rospy.sleep(STAGE1_PERIOD)
     
     rospy.loginfo("Returning toolhead")
     send_gcode(move_toolhead(0))
     rospy.sleep(TOOLHEAD_TEST_DIST * TOOLHEAD_PERIOD)
+    
+    send_gcode(OPEN_CLAMP)
+    rospy.sleep(CLAMP_PERIOD)
+   
+    rospy.loginfo("Returning carriage")
+    send_gcode(move_carriage(0))
+    rospy.sleep(CARRIAGE_TEST_DIST * CARRIAGE_PERIOD)
+    
     return
 
 def init_motors():
@@ -127,7 +150,7 @@ def init_motors():
     home_stepper()
     rospy.loginfo("Done homing")
 
-    exercise()
+    #exercise()
 
 if __name__ == '__main__':
 

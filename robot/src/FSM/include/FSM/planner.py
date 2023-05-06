@@ -7,8 +7,9 @@ import numpy as np
 import cv2
 
 # splits an image full of lines into individual lines and solves for their equations
-NEEDLE_DIST_THRESHOLD = 50 # more than 30 pixels away, we aren't interested in injecting
+NEEDLE_DIST_THRESHOLD = 60 # more than 30 pixels away, we aren't interested in injecting
 VEIN_SIZE_THRESHOLD = 50
+needle_start = np.array([169, 427]) # where the needle is: row, col
 VISUAL = False
 DEBUG = True
 '''
@@ -75,7 +76,7 @@ Inputs:
 Outputs:
     1D distance vector to travel. Unit in pixels.
 '''
-def plan(data):
+def plan(data, position, limit):
     # get thing to numpy
     # img_array = bridge.imgmsg_to_cv2(data)
     img_array = data
@@ -83,7 +84,7 @@ def plan(data):
     lines = segment_image(img_array)
     # step 1: draw a ray along which we believe we will travel
     ray = np.array([0, 1]) # 1 in the x, 0 in the y
-    needle_start = np.array([127, 517]) # where the needle is: row, col
+    global needle_start
     
     if VISUAL:
         t = np.linspace(-200,600,801)
@@ -119,10 +120,19 @@ def plan(data):
         min_dist_to_needle = np.min(np.abs(dot))
         if DEBUG:
             rospy.loginfo(f"Expected distance to nearest visible point on vein: {min_dist_to_needle}")
-        if min_dist_to_needle < NEEDLE_DIST_THRESHOLD:
+        if min_dist_to_needle > NEEDLE_DIST_THRESHOLD:
             continue
-    
+        
+        # the planner needs to throw away veins it cannot reach
+        direction = np.sign(np.dot(intercept - needle_start, ray))
         distance = np.linalg.norm(intercept - needle_start)
+        pixel_vector = direction *distance
+        distance_estimate = pixel_vector * 80 / 640 
+        destination = distance_estimate + position
+        if destination < 0 or destination >= limit:
+            rospy.loginfo(f"Vein expected at {destination}. Cannot reach")
+            continue
+
         # # step 3: Choose the closest vein
         if distance < min_dist:
             min_dist = distance
@@ -135,7 +145,7 @@ def plan(data):
         rospy.loginfo(f"Going for vein at {min_intercept}. Commanding {command}")
     if VISUAL:
         pass
-    return command
+    return command, min_intercept
 
     # Step 5: publish the distance
     # pub.publish(command)

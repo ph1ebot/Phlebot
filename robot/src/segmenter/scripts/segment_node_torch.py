@@ -12,10 +12,7 @@ from segmenter import model as M
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
-#import tensorrt as trt 
-#import pycuda.driver as cuda
-#import pycuda.autoinit
-
+max_images_saved = 20
 my_device = 'cuda'
 
 def callback(data):
@@ -65,8 +62,7 @@ def callback(data):
     #debug_image = np.ones(masked_image.shape, dtype = np.uint8) *255
     rospy.loginfo(f"The debug image has shape {debug_image.shape} and type {type(debug_image)} and dtype {debug_image.dtype}")
 
-    status = cv2.imwrite(f"segmented{image_count:05d}.jpg", debug_image)
-    rospy.loginfo(f"CV2 saved image correctly: {status}")
+    status = cv2.imwrite(f"segmented{image_count % max_images_saved:05d}.jpg", debug_image)
     image_count += 1
     pub.publish(img_msg)
 
@@ -75,7 +71,7 @@ def callback(data):
 if __name__ == '__main__':
     # Load model, vanilla pytorch way
     model = M.VeinU_Net(48, 0).to(my_device).eval()
-    prev_state = torch.load('UNeXt3_8.pth')
+    prev_state = torch.load('UNeXt3_9.pth')
     model.load_state_dict(prev_state['model_state_dict'])
     del prev_state
     gc.collect()
